@@ -28,7 +28,7 @@ const BindingLifecycleCellDep: CellDep = {
     },
     depType:  "code",
 }
-const segmentSize = 1024;
+const defaultSegmentSize = 1024;
 
 function trim0x(input: string): string {
     if (input.startsWith("0x")) {
@@ -148,18 +148,26 @@ async function main() {
     //   - for "melt" operation, the 2nd argument is the Spore ID
     const operation = process.argv[2];
     if (operation == "mint") {
-        if (process.argv.length < 4) {
+        if (process.argv.length < 5) {
             throw new Error("Please provide the file path to mint Spore");
         }
 
         const segmentFile = process.argv[3];
+        const contentType = process.argv[4];
+
+        let segmentSize = defaultSegmentSize;
+        if (process.argv.length > 5) {
+            segmentSize = parseInt(process.argv[5]);
+        }
+
+        const segments = await splitFileIntoSegments(segmentFile, segmentSize);
+        console.log(`Split file into ${segments.length} segments, each segment size: ${segmentSize} bytes.`);
 
         // Mint Spore Cell
         const contentHash = await computeFileHash(segmentFile);
-        const { typeHash } = await mintSpore('plain/text', contentHash);
+        const { typeHash } = await mintSpore(contentType + '+spore', contentHash);
 
         // Mint Spore Segment Cells
-        const segments = await splitFileIntoSegments(segmentFile, segmentSize);
         for (const segment of segments) {
             await mintSporeSegment(typeHash, segment);
         }
