@@ -28,6 +28,7 @@ const BindingLifecycleCellDep: CellDep = {
     },
     depType:  "code",
 }
+const segmentSize = 100; // 100b
 
 function trim0x(input: string): string {
     if (input.startsWith("0x")) {
@@ -136,6 +137,10 @@ async function mintSporeSegment(sporeTypeHash: Hash, segmentContent: Uint8Array)
 }
 
 async function main() {
+    if (process.argv.length < 3) {
+        throw new Error("Please provide the operation as the first argument, 'mint', 'transfer', 'melt'");
+    }
+
     // The arguments:
     //   - 1st argument indicates the operation, "mint", "transfer", "melt"
     //   - for "mint" operation, the 2nd argument is the file path of the video segment
@@ -143,14 +148,17 @@ async function main() {
     //   - for "melt" operation, the 2nd argument is the Spore ID
     const operation = process.argv[2];
     if (operation == "mint") {
+        if (process.argv.length < 4) {
+            throw new Error("Please provide the file path to mint Spore");
+        }
+
         const segmentFile = process.argv[3];
 
         // Mint Spore Cell
         const contentHash = await computeFileHash(segmentFile);
-        const { typeHash } = await mintSpore('application/spore+video/mp4', contentHash);
+        const { typeHash } = await mintSpore('video/mp4+spore', contentHash);
 
         // Mint Spore Segment Cells
-        const segmentSize = 1024 / 2; // 500b
         const segments = await splitFileIntoSegments(segmentFile, segmentSize);
         for (const segment of segments) {
             await mintSporeSegment(typeHash, segment);
