@@ -28,7 +28,7 @@ const BindingLifecycleCellDep: CellDep = {
     },
     depType:  "code",
 }
-const segmentSize = 100; // 100b
+const segmentSize = 1024;
 
 function trim0x(input: string): string {
     if (input.startsWith("0x")) {
@@ -156,7 +156,7 @@ async function main() {
 
         // Mint Spore Cell
         const contentHash = await computeFileHash(segmentFile);
-        const { typeHash } = await mintSpore('video/mp4+spore', contentHash);
+        const { typeHash } = await mintSpore('plain/text', contentHash);
 
         // Mint Spore Segment Cells
         const segments = await splitFileIntoSegments(segmentFile, segmentSize);
